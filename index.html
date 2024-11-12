@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de lengua</title>
+
+    <style>
+        body {
+            animation: animation 5s linear infinite;
+        }
+
+        .option {
+            position: relative;
+            display: flex;
+            background-image: linear-gradient(rgb(200, 200, 200), rgb(150, 150, 150));
+            border-radius: 1vh;
+            font: 5vh Arial;
+            padding: 0;
+            margin: 0;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+
+        .option:active {
+            filter: brightness(0.8);
+        }
+
+        .option label {
+            position: absolute;
+            pointer-events: none;
+            padding-left: 1vw;
+            padding-right: 1vw;
+        }
+
+        #title {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-text-stroke: 0.5vh black;
+            font: 10vh Arial;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+            height: 20vh;
+            color: white;
+        }
+
+        #percentage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            -webkit-text-stroke: 0.5vh black;
+            font: 20vh Arial;
+            font-weight: 600;
+            text-align: center;
+            width: 100vw;
+            height: 100vh;
+            color: white;
+        }
+
+        @keyframes animation {
+            0% {
+                background-color: red;
+            }
+
+            16% {
+                background-color: yellow;
+            }
+            
+            32% {
+                background-color: lime;
+            }
+
+            
+            45% {
+                background-color: cyan;
+            }
+
+            60% {
+                background-color: blue;
+            }
+
+            75% {
+                background-color: rgb(255, 0, 234);
+            }
+
+            100% {
+                background-color: red;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="position: absolute; left: calc(5vw); top: calc(5vh); width: 90vw; height: 90vh;" id="everything">
+        <label id="title">Default</label>
+        <div style="position: absolute; top: 25%; width: 100%; height: 75%; grid-template-columns: 50% 50%; gap: 1vh 1vw; display: grid;">
+            <div class="option"><label>Default</label></div>
+            <div class="option"><label>Default</label></div>
+            <div class="option"><label>Default</label></div>
+            <div class="option"><label>Default</label></div>
+        </div>
+    </div>
+
+    <label id="percentage">Default</label>
+
+    <canvas style="position: absolute; left: 0; top: 0; z-index: 100; margin: 0; padding: 0; pointer-events: none;"></canvas>
+
+    <script>
+        let title = document.getElementById("title");
+        let everything = document.getElementById("everything");
+        let percentage = document.getElementById("percentage");
+        let canvas = document.querySelector("canvas");
+        let optionBtns = document.body.getElementsByClassName("option");
+        let ctx = canvas.getContext("2d");
+        let scale = 0;
+        let resp = 0;
+        let clickBtns = true;
+        
+        let questions = [
+            "¿Por qué Alemania es un gobierno federal?",
+            "¿Qué tipos de musica hay en Alemania?",
+            "¿Cómo es el sistema de gobierno en Alemania?",
+            "¿Qué tipos de vestimentas tradicionales hay en Alemania?"
+        ];
+
+        let answers = [
+            ["<b>A.</b> Porque sí", "<b>B.</b> La estructura y autoridad se deriva de la constitucion del pais", "<b>C.</b> La estructura y autoridad no se deriva de la constitucion del pais", "<b>D.</b> Porque es un pais importante"],
+            ["<b>A.</b> Reggaeton y pop", "<b>B.</b> Reggaeton y rock", "<b>C.</b> Rock y pop", "<b>D.</b> Ninguno"],
+            ["<b>A.</b> Es una replública federal, democratica, representativa y parlamentaria", "<b>B.</b> Opera bajo un marco establecido en el documento constitucional de 1949", "<b>C.</b> Es una replública autodidacta, informativa e importante", "<b>D.</b> Es un gobierno propio"],
+            ["<b>A.</b> El dirndl y los lederhosen", "<b>B.</b> El direct y los lederhouse", "No", "No"]
+        ];
+
+        let correct = [
+            1, 2, 0, 0
+        ];
+
+        let confeti = [];
+
+        let size = 0;
+
+        let aaaa = 0;
+
+        let colors = [
+            //"red", "lime", "cyan", "blue", "magenta", "cornflowerblue", "yellow", "orange"
+            "red", "rgb(255, 200, 0)", "black"
+        ]
+
+        function addSingleConfeti() {
+            confeti.push({
+                x: 0,
+                y: 0,
+                offset: Math.random()*Math.PI*2,
+                yVel: (Math.random()+2)*4,
+                xVel: Math.random()*4.5-2.25,
+                angleS: Math.random()*0.2-0.1,
+                angle: 0,
+                color: colors[Math.round(Math.random()*(colors.length-1))]
+            });
+        }
+
+        function update() {
+            title.innerHTML = questions[aaaa];
+            for (let i = 0; i < answers[aaaa].length; i++) {
+                let answer = answers[aaaa][i];
+                optionBtns[i].querySelector("label").innerHTML = answer;
+                optionBtns[i].style.backgroundImage = "linear-gradient(rgb(200, 200, 200), rgb(150, 150, 150))";
+                if (answer == "No") {
+                    optionBtns[i].style.display = "none";
+                } else {
+                    optionBtns[i].style.display = "flex";
+                }
+            }
+        }
+
+        update();
+
+        for (let i = 0; i < optionBtns.length; i++) {
+            let btn = optionBtns[i];
+            btn.onclick = function() {
+                if (!clickBtns) {return;}
+
+                if (i == correct[aaaa]) {
+                    btn.style.backgroundImage = "linear-gradient(rgb(0, 200, 0), rgb(0, 150, 0))";
+                    resp += 1;
+                    for (let i = 0; i < 25; i++) {
+                        addSingleConfeti();
+                    }
+                } else {
+                    btn.style.backgroundImage = "linear-gradient(rgb(200, 0, 0), rgb(150, 0, 0))";
+                }
+                
+                clickBtns = false;
+                setTimeout(function() {
+                    clickBtns = true;
+                    aaaa += 1;
+                    if (aaaa >= answers.length) {
+                        everything.style.display = "none";
+                        percentage.style.display = "flex";
+                        percentage.innerText = resp + " / 4";
+                        if (resp > 2) {
+                            setInterval(function() {
+                                addSingleConfeti();
+                            }, 60);
+                        }
+                    } else {
+                        update();
+                    }
+                }, 2000);
+            }
+        }
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        scale = canvas.height / 100;
+
+        addEventListener("resize", function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            scale = canvas.height / 100;
+        });
+
+        function drawSquare(x, y, sx, sy, angle, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = color;
+            ctx.fillRect(-sx/2, -sy/2, sx, sy);
+            ctx.restore();
+        }
+
+        setInterval(function() {
+            size = (size+0.1)%(Math.PI*2);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.scale(scale, scale);
+            ctx.translate(canvas.width / scale / 2, 100);
+
+            for (let i = 0; i < confeti.length; i++) {
+                let c = confeti[i];
+                c.x += c.xVel; c.y -= c.yVel;
+                c.yVel *= 0.9;
+                c.yVel -= 0.1;
+                c.xVel *= 0.98;
+                c.angle += c.angleS;
+                drawSquare(c.x, c.y, Math.sin(size+c.offset) * 4, 6, c.angle, c.color);
+                if (c.y > 0) {
+                    confeti.slice(i, i);
+                }
+            }
+
+            ctx.restore();
+        }, 1000 / 48);
+    </script>
+</body>
+</html>
